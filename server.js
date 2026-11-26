@@ -6,7 +6,12 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/yesno';
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI is missing! Render ke Environment Variables me daalo.');
+  process.exit(1); // Agar DB link nahi hai to server band ho jayega
+}
 
 app.use(cors());
 app.use(express.json());
@@ -58,10 +63,9 @@ async function connectDB() {
     }
   } catch (err) {
     console.error('❌ MongoDB connection error:', err);
+    process.exit(1); // Agar DB connect nahi hua to server crash karo taaki pata chale
   }
 }
-
-connectDB();
 
 // --- PUBLIC APIs ---
 app.get('/api/settings', async (req, res) => {
@@ -205,4 +209,9 @@ app.post('/api/settings', async (req, res) => {
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// --- START SERVER (Only after DB connects) ---
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
+});
