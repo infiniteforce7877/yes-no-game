@@ -1,7 +1,3 @@
-/* ================================================================
-   anime-bg.js — Demon Slayer Chaos Background
-   Bas 1 image chahiye: chars.png (same folder me)
-   ================================================================ */
 (function(){
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
@@ -67,7 +63,6 @@
   for (let i = 0; i < 10; i++) setTimeout(createSticker, i * 600);
   setInterval(createSticker, 1200);
 
-  /* ============== YES/NO BURST PARTICLES ============== */
   window.burstParticles = function(x, y, color){
     const isYes = color.indexOf('110,242,200') !== -1;
     const mainColor = isYes ? '#6ef2c8' : '#ff4d8d';
@@ -106,7 +101,6 @@
     setTimeout(() => flash.remove(), 300);
   };
 
-  /* ============== FUNNY 8-BIT BGM ============== */
   let audioCtx = null;
   let isSoundOn = false;
   let loopTimer = null;
