@@ -42,10 +42,11 @@
         showScreen('admin');
         loadAll();
       } else {
-        toast(msg, 'Invalid credentials');
+        const errData = await res.json();
+        toast(msg, errData.error || 'Invalid credentials');
       }
     } catch(err) {
-      toast(msg, 'Network error');
+      toast(msg, 'Network error: ' + err.message);
     }
   });
 
@@ -64,20 +65,19 @@
   /* ==================== LOAD DATA ==================== */
   async function loadAll(){
     try {
-      // Stats
       const statsRes = await fetch('/api/admin/stats');
+      if (!statsRes.ok) throw new Error('Stats API failed');
       const stats = await statsRes.json();
+      
       $('#sUsers').textContent = stats.users;
       $('#sQuestions').textContent = stats.questions;
       $('#sAnswers').textContent = stats.answers;
       $('#sRating').textContent = stats.avgRating;
 
-      // Questions
       const qsRes = await fetch('/api/admin/questions');
       questionsCache = await qsRes.json();
       renderQuestions(questionsCache);
 
-      // Settings
       const setRes = await fetch('/api/settings');
       const s = await setRes.json();
       $('#setName').value = s.siteName || '';
@@ -131,8 +131,10 @@
     box.querySelectorAll('[data-del]').forEach(b => {
       b.addEventListener('click', async () => {
         if (!confirm('Ye question delete karna hai?')) return;
-        await fetch('/api/admin/questions/' + b.dataset.del, { method: 'DELETE' });
-        loadAll();
+        try {
+          await fetch('/api/admin/questions/' + b.dataset.del, { method: 'DELETE' });
+          loadAll();
+        } catch(e) { alert('Error deleting question'); }
       });
     });
   }
@@ -175,7 +177,7 @@
       loadAll();
       document.querySelector('.tab[data-tab="questions"]').click();
     } catch(e) {
-      toast(msg, 'Server error');
+      toast(msg, 'Server error saving question');
     }
   });
 
