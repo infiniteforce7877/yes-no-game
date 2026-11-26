@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin · NEURAL YES/NO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<main id="app">
+
+  <!-- LOGIN -->
+  <section class="screen active" id="screen-login">
+    <div class="panel" style="max-width:480px;margin:0 auto">
+      <div class="eyebrow">Restricted Sector</div>
+      <h2 class="brand" style="font-size:clamp(22px,4.4vw,32px)">Admin Access</h2>
+      <p class="tagline">Authorized personnel only.</p>
+
+      <form id="adminForm" autocomplete="off">
+        <div class="field">
+          <label for="aUser">Username</label>
+          <input class="input" id="aUser" placeholder="username" required>
+        </div>
+        <div class="field">
+          <label for="aPass">Password</label>
+          <input class="input" id="aPass" type="password" placeholder="••••••••" required>
+        </div>
+        <div class="msg" id="adminMsg"></div>
+        <button class="btn btn-primary" type="submit">Authenticate</button>
+      </form>
+      <div class="foot"><a href="index.html">← Back to Home</a></div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="screen" id="screen-admin">
+    <div class="panel">
+      <div class="eyebrow">Control Center</div>
+      <h2 class="brand" style="font-size:clamp(20px,4vw,30px)">Admin Dashboard</h2>
+
+      <div class="stat-grid">
+        <div class="stat"><b id="sUsers">0</b><span>Users</span></div>
+        <div class="stat"><b id="sQuestions">0</b><span>Questions</span></div>
+        <div class="stat"><b id="sAnswers">0</b><span>Answers</span></div>
+        <div class="stat"><b id="sRating">0.0</b><span>Avg Rating</span></div>
+      </div>
+
+      <div class="tabbar">
+        <button class="tab on" data-tab="questions">Questions</button>
+        <button class="tab" data-tab="add">Add / Edit</button>
+        <button class="tab" data-tab="users">Users</button>
+        <button class="tab" data-tab="feedback">Feedback</button>
+        <button class="tab" data-tab="settings">Settings</button>
+      </div>
+
+      <div id="tab-questions">
+        <div class="admin-list" id="adminList"></div>
+      </div>
+
+      <div id="tab-add" style="display:none">
+        <div class="field">
+          <label for="nText">Question Text</label>
+          <input class="input" id="nText" placeholder="e.g. Kya aapne aaj phone charge pe lagaya?" maxlength="200">
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="nEmoji">Emoji</label>
+            <input class="input" id="nEmoji" placeholder="🤖" maxlength="4">
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <button class="btn btn-ghost" id="cancelEdit" style="width:100%;display:none">Cancel Edit</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="nYes">YES Reaction</label>
+          <input class="input" id="nYes" placeholder="YES daba to ye dikhega..." maxlength="200">
+        </div>
+        <div class="field">
+          <label for="nNo">NO Reaction</label>
+          <input class="input" id="nNo" placeholder="NO daba to ye dikhega..." maxlength="200">
+        </div>
+        <div class="msg" id="addMsg"></div>
+        <button class="btn btn-primary" id="saveQ">Add Question</button>
+      </div>
+
+      <div id="tab-users" style="display:none">
+        <div class="admin-list" id="usersList"></div>
+      </div>
+
+      <div id="tab-feedback" style="display:none">
+        <div class="admin-list" id="feedbackList"></div>
+      </div>
+
+      <div id="tab-settings" style="display:none">
+        <div class="field">
+          <label for="setName">Site Name</label>
+          <input class="input" id="setName" maxlength="40">
+        </div>
+        <div class="field">
+          <label for="setTag">Tagline</label>
+          <input class="input" id="setTag" maxlength="140">
+        </div>
+        <div class="field">
+          <label for="setCount">Questions Per User</label>
+          <input class="input" id="setCount" type="number" min="1" max="30">
+        </div>
+        <div class="msg" id="setMsg"></div>
+        <button class="btn btn-primary" id="saveSettings">Save Settings</button>
+      </div>
+
+      <div class="foot"><a id="adminLogout">Logout Admin</a></div>
+    </div>
+  </section>
+
+</main>
+
+<script src="db.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
