@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NEURAL YES/NO — Dimag Ka Dahi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="hud">
+  <span class="dot"></span>
+  <span class="live" id="hudLive">NEURAL LINK ACTIVE</span>
+  <span class="sep hide-sm"></span>
+  <span class="bars hide-sm"><i></i><i></i><i></i><i></i><i></i></span>
+  <span class="sep"></span>
+  <span class="clock" id="hudClock">00:00:00</span>
+</div>
+
+<div class="fun-ticker">
+  <div class="fun-track" id="funTrack">
+    <span>😎 Bhai kya scene hai?</span>
+    <span>🔮 Aaj kismat kya kehti hai?</span>
+    <span>🧠 Dimaag ka dahi guaranteed</span>
+    <span>☕ Chai pee ke aa jao</span>
+    <span>🎪 Circus shuru hone wala hai</span>
+    <span>💀 Roast ka scope hai</span>
+  </div>
+</div>
+
+<main id="app">
+
+  <!-- ENTRY -->
+  <section class="screen active" id="screen-entry">
+    <div class="panel">
+      <div class="eyebrow" id="eyebrowText">⚠ Neural Decision Engine v2.4</div>
+      <h1 class="brand" id="siteName">YES / NO</h1>
+      <p class="tagline" id="siteTagline">Loading...</p>
+
+      <form id="entryForm" autocomplete="off">
+        <div class="field">
+          <label for="fName">Tumhara Naam <span class="label-hint">(asli wala)</span></label>
+          <input class="input" id="fName" placeholder="e.g. Rahul, Chintu..." maxlength="40" required>
+        </div>
+        <div class="field">
+          <label for="fEmail">Real Email <span class="label-hint">(fake pe karma lagta hai)</span></label>
+          <input class="input" id="fEmail" type="email" placeholder="tumhara@asli-email.com" maxlength="80" required>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="fAge">Age <span class="label-hint">(jhooth mat bolna)</span></label>
+            <input class="input" id="fAge" type="number" min="5" max="120" placeholder="18" required>
+          </div>
+          <div class="field">
+            <label>Gender</label>
+            <div class="chips" id="genderChips">
+              <button type="button" class="chip" data-g="Male">Male</button>
+              <button type="button" class="chip" data-g="Female">Female</button>
+              <button type="button" class="chip" data-g="Other">Other</button>
+            </div>
+            <input type="hidden" id="fGender">
+          </div>
+        </div>
+        <div class="msg" id="entryMsg"></div>
+        <button class="btn btn-primary" id="enterBtn" type="submit">Andar Aao 🚪</button>
+        <p class="microcopy">Bina kisi commitment ke. Shaadi nahi karni. 💍❌</p>
+      </form>
+
+      <div class="foot">System "secured" hai · <a href="admin.html">Admin Access 🔐</a></div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="screen" id="screen-quiz">
+    <div class="panel">
+      <div class="progress-wrap">
+        <div class="progress-top">
+          <span>Sawaal <b id="qCount">1 / 10</b></span>
+          <span id="qUser">—</span>
+        </div>
+        <div class="progress"><i id="qBar"></i></div>
+        <p class="progress-quip" id="progressQuip">Chalo shuru karein...</p>
+      </div>
+
+      <div id="qCard" class="card-pop">
+        <span class="q-emoji" id="qEmoji">🤖</span>
+        <p class="q-text" id="qText">Loading...</p>
+      </div>
+
+      <div class="answers">
+        <button class="ans-btn" data-answer="yes">YES 💯</button>
+        <button class="ans-btn" data-answer="no">NO 😐</button>
+      </div>
+
+      <div class="reaction" id="reaction">
+        <span class="rtag" id="rtag">REACTION</span>
+        <div id="reactionText"></div>
+      </div>
+
+      <button class="btn btn-primary" id="nextBtn">Aage Badho →</button>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen" id="screen-result">
+    <div class="panel">
+      <div class="eyebrow">Session Complete</div>
+      <h2 class="brand" style="font-size:clamp(22px,4.4vw,32px)" id="resultHeader">Ho Gaya Bhai 🎉</h2>
+      <p class="tagline" id="verdict">—</p>
+      <div class="stat-grid">
+        <div class="stat"><b id="dYes">0</b><span>YES 💯</span></div>
+        <div class="stat"><b id="dNo">0</b><span>NO 😐</span></div>
+      </div>
+      <p class="roast" id="roastLine">—</p>
+      <button class="btn btn-primary" id="toFeedback">Aage Kya? →</button>
+    </div>
+  </section>
+
+  <!-- FEEDBACK -->
+  <section class="screen" id="screen-feedback">
+    <div class="panel">
+      <div class="eyebrow">Transmission Time · Sach Bolo</div>
+      <h2 class="brand" style="font-size:clamp(22px,4.4vw,32px)">Kitna Funny Laga?</h2>
+      <p class="tagline">Sach bolo. Hum judge nahi karenge. (Jhooth, karenge)</p>
+
+      <div class="stars" id="stars">
+        <div class="rate" data-r="1">😡</div>
+        <div class="rate" data-r="2">🙁</div>
+        <div class="rate" data-r="3">😐</div>
+        <div class="rate" data-r="4">🙂</div>
+        <div class="rate" data-r="5">🤩</div>
+      </div>
+
+      <div class="field">
+        <label for="fbComment">Kuch Kehna Hai? <span class="label-hint">(humari insult karo)</span></label>
+        <textarea class="input" id="fbComment" maxlength="400" placeholder="Humari burai karo. Hum padh ke hansege. 😂"></textarea>
+      </div>
+      <div class="msg" id="fbMsg"></div>
+      <button class="btn btn-primary" id="fbSubmit">Feedback Bhejo 📡</button>
+    </div>
+  </section>
+
+  <!-- DONE -->
+  <section class="screen" id="screen-done">
+    <div class="panel">
+      <div class="eyebrow">Khatam. Tata. Bye-Bye.</div>
+      <h2 class="brand" style="font-size:clamp(22px,4.4vw,32px)">Tum Legend Ho 🫡</h2>
+      <p class="tagline" id="doneLine">—</p>
+      <button class="btn btn-primary" id="againBtn">Phir Se Khelo 🔁</button>
+      <div class="foot"><a id="logoutLink">Ghar Jao (Home) 🏠</a></div>
+    </div>
+  </section>
+
+</main>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-box">
+    <div class="loading-emoji" id="loadingEmoji">🤔</div>
+    <div class="loading-text" id="loadingText">Loading...</div>
+  </div>
+</div>
+
+<script src="db.js"></script>
+<script src="email.js"></script>
+<script src="app.js"></script>
+<script src="anime-bg.js"></script>
+</body>
+</html>
