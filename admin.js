@@ -1,9 +1,6 @@
 (function(){
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
-
-  const ADMIN_USER = 'GOKU444';
-  const ADMIN_PASS = 'GOKU444';
   const SESSION_KEY = 'yesno_admin_ok';
 
   let editingId = null;
@@ -25,23 +22,34 @@
     return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
-  $('#adminForm')?.addEventListener('submit', e => {
+  /* ==================== LOGIN ==================== */
+  $('#adminForm')?.addEventListener('submit', async e => {
     e.preventDefault();
     const msg = $('#adminMsg');
     const u = $('#aUser').value.trim();
     const p = $('#aPass').value;
 
-    if (u === ADMIN_USER && p === ADMIN_PASS) {
-      sessionStorage.setItem(SESSION_KEY, 'true');
-      $('#aUser').value = ''; $('#aPass').value = '';
-      msg.classList.remove('show');
-      showScreen('admin');
-      loadAll();
-    } else {
-      toast(msg, 'Invalid credentials');
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      });
+      if (res.ok) {
+        sessionStorage.setItem(SESSION_KEY, 'true');
+        $('#aUser').value = ''; $('#aPass').value = '';
+        msg.classList.remove('show');
+        showScreen('admin');
+        loadAll();
+      } else {
+        toast(msg, 'Invalid credentials');
+      }
+    } catch(err) {
+      toast(msg, 'Network error');
     }
   });
 
+  /* ==================== TABS ==================== */
   $$('.tab').forEach(t => {
     t.addEventListener('click', () => {
       $$('.tab').forEach(x => x.classList.remove('on'));
@@ -53,24 +61,38 @@
     });
   });
 
-  function loadAll(){
-    const stats = DB.getStats();
-    $('#sUsers').textContent = stats.users;
-    $('#sQuestions').textContent = stats.questions;
-    $('#sAnswers').textContent = stats.answers;
-    $('#sRating').textContent = stats.avgRating;
+  /* ==================== LOAD DATA ==================== */
+  async function loadAll(){
+    try {
+      // Stats
+      const statsRes = await fetch('/api/admin/stats');
+      const stats = await statsRes.json();
+      $('#sUsers').textContent = stats.users;
+      $('#sQuestions').textContent = stats.questions;
+      $('#sAnswers').textContent = stats.answers;
+      $('#sRating').textContent = stats.avgRating;
 
-    questionsCache = DB.getQuestions();
-    renderQuestions(questionsCache);
-    loadUsers();
-    loadFeedback();
+      // Questions
+      const qsRes = await fetch('/api/admin/questions');
+      questionsCache = await qsRes.json();
+      renderQuestions(questionsCache);
 
-    const s = DB.getSettings();
-    $('#setName').value = s.siteName || '';
-    $('#setTag').value = s.tagline || '';
-    $('#setCount').value = s.questionsPerQuiz || 10;
+      // Settings
+      const setRes = await fetch('/api/settings');
+      const s = await setRes.json();
+      $('#setName').value = s.siteName || '';
+      $('#setTag').value = s.tagline || '';
+      $('#setCount').value = s.questionsPerQuiz || 10;
+
+      loadUsers();
+      loadFeedback();
+    } catch(e) {
+      console.error(e);
+      showScreen('login');
+    }
   }
 
+  /* ==================== QUESTIONS ==================== */
   function renderQuestions(list){
     const box = $('#adminList');
     if (!list.length) {
@@ -80,7 +102,7 @@
     box.innerHTML = list.map(q => `
       <div class="qrow">
         <div class="qmain">
-          <p>${esc(q.emoji)} ${esc(q.text)} ${q.active === false ? '<span style="color:#ff4d8d;font-size:10px">[INACTIVE]</span>' : ''}</p>
+          <p>${esc(q.emoji)} ${esc(q.text)}</p>
           <small><b>YES →</b> ${esc(q.yes_reaction)}</small>
           <small><i>NO →</i> ${esc(q.no_reaction)}</small>
         </div>
@@ -93,7 +115,7 @@
 
     box.querySelectorAll('[data-edit]').forEach(b => {
       b.addEventListener('click', () => {
-        const q = list.find(x => x.id === b.dataset.edit);
+        const q = list.find(x => x.id == b.dataset.edit);
         if (!q) return;
         editingId = q.id;
         $('#nText').value = q.text;
@@ -107,14 +129,15 @@
     });
 
     box.querySelectorAll('[data-del]').forEach(b => {
-      b.addEventListener('click', () => {
+      b.addEventListener('click', async () => {
         if (!confirm('Ye question delete karna hai?')) return;
-        DB.deleteQuestion(b.dataset.del);
+        await fetch('/api/admin/questions/' + b.dataset.del, { method: 'DELETE' });
         loadAll();
       });
     });
   }
 
+  /* ==================== ADD / EDIT ==================== */
   function resetForm(){
     editingId = null;
     $('#nText').value = ''; $('#nEmoji').value = '';
@@ -126,7 +149,7 @@
 
   $('#cancelEdit')?.addEventListener('click', resetForm);
 
-  $('#saveQ')?.addEventListener('click', () => {
+  $('#saveQ')?.addEventListener('click', async () => {
     const msg = $('#addMsg');
     const body = {
       text: $('#nText').value.trim(),
@@ -138,72 +161,94 @@
       return toast(msg, 'Question, YES reaction, NO reaction — teeno bharo.');
     }
 
-    if (editingId) DB.updateQuestion(editingId, body);
-    else DB.addQuestion(body);
-
-    resetForm();
-    loadAll();
-    document.querySelector('.tab[data-tab="questions"]').click();
+    try {
+      if (editingId) {
+        await fetch('/api/admin/questions/' + editingId, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+        });
+      } else {
+        await fetch('/api/admin/questions', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+        });
+      }
+      resetForm();
+      loadAll();
+      document.querySelector('.tab[data-tab="questions"]').click();
+    } catch(e) {
+      toast(msg, 'Server error');
+    }
   });
 
-  function loadUsers(){
-    const users = DB.getUsers().sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
-    const box = $('#usersList');
-    if (!users.length) {
-      box.innerHTML = '<div class="qrow"><div class="qmain"><p>Koi user nahi abhi.</p></div></div>';
-      return;
-    }
-    box.innerHTML = users.map(u => `
-      <div class="qrow">
-        <div class="qmain">
-          <p>${esc(u.name)} · ${esc(u.email)}</p>
-          <small>Age ${u.age} · ${esc(u.gender)} · Joined ${new Date(u.created_at || Date.now()).toLocaleDateString()}</small>
-          ${u.is_banned ? '<small style="color:#ff4d8d"><i>BANNED</i></small>' : ''}
+  /* ==================== USERS ==================== */
+  async function loadUsers(){
+    try {
+      const res = await fetch('/api/admin/users');
+      const users = await res.json();
+      const box = $('#usersList');
+      if (!users.length) {
+        box.innerHTML = '<div class="qrow"><div class="qmain"><p>Koi user nahi abhi.</p></div></div>';
+        return;
+      }
+      box.innerHTML = users.map(u => `
+        <div class="qrow">
+          <div class="qmain">
+            <p>${esc(u.name)} · ${esc(u.email)}</p>
+            <small>Age ${u.age} · ${esc(u.gender)}</small>
+            ${u.is_banned ? '<small style="color:#ff4d8d"><i>BANNED</i></small>' : ''}
+          </div>
+          <button class="icon-btn ${u.is_banned ? '' : 'danger'}" data-ban="${u.id}">${u.is_banned ? 'UNBAN' : 'BAN'}</button>
         </div>
-        <button class="icon-btn ${u.is_banned ? '' : 'danger'}" data-ban="${esc(u.email)}">${u.is_banned ? 'UNBAN' : 'BAN'}</button>
-      </div>
-    `).join('');
+      `).join('');
 
-    box.querySelectorAll('[data-ban]').forEach(b => {
-      b.addEventListener('click', () => {
-        DB.toggleBanUser(b.dataset.ban);
-        loadUsers();
-        const stats = DB.getStats();
-        $('#sUsers').textContent = stats.users;
-        $('#sAnswers').textContent = stats.answers;
-        $('#sRating').textContent = stats.avgRating;
+      box.querySelectorAll('[data-ban]').forEach(b => {
+        b.addEventListener('click', async () => {
+          await fetch('/api/admin/users/' + b.dataset.ban + '/ban', { method: 'PATCH' });
+          loadUsers();
+        });
       });
-    });
+    } catch(e) {}
   }
 
-  function loadFeedback(){
-    const fb = DB.getFeedback().sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
-    const box = $('#feedbackList');
-    if (!fb.length) {
-      box.innerHTML = '<div class="qrow"><div class="qmain"><p>Koi feedback nahi abhi.</p></div></div>';
-      return;
-    }
-    box.innerHTML = fb.slice(0, 200).map(f => `
-      <div class="qrow">
-        <div class="qmain">
-          <p>${'⭐'.repeat(f.rating || 0)} ${f.comment ? '· "' + esc(f.comment) + '"' : ''}</p>
-          <small>${esc(f.email)} · ${new Date(f.created_at || Date.now()).toLocaleString()}</small>
+  /* ==================== FEEDBACK ==================== */
+  async function loadFeedback(){
+    try {
+      const res = await fetch('/api/admin/feedback');
+      const fb = await res.json();
+      const box = $('#feedbackList');
+      if (!fb.length) {
+        box.innerHTML = '<div class="qrow"><div class="qmain"><p>Koi feedback nahi abhi.</p></div></div>';
+        return;
+      }
+      box.innerHTML = fb.map(f => `
+        <div class="qrow">
+          <div class="qmain">
+            <p>${'⭐'.repeat(f.rating || 0)} ${f.comment ? '· "' + esc(f.comment) + '"' : ''}</p>
+            <small>${esc(f.email)} · ${new Date(f.created_at).toLocaleString()}</small>
+          </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    } catch(e) {}
   }
 
-  $('#saveSettings')?.addEventListener('click', () => {
+  /* ==================== SETTINGS ==================== */
+  $('#saveSettings')?.addEventListener('click', async () => {
     const msg = $('#setMsg');
     const s = {
       siteName: $('#setName').value.trim() || 'YES / NO',
       tagline: $('#setTag').value.trim(),
       questionsPerQuiz: Math.max(1, Math.min(30, Number($('#setCount').value) || 10))
     };
-    DB.saveSettings(s);
-    toast(msg, 'Settings saved ✔', true);
+    try {
+      await fetch('/api/settings', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(s)
+      });
+      toast(msg, 'Settings saved ✔', true);
+    } catch(e) {
+      toast(msg, 'Error saving settings');
+    }
   });
 
+  /* ==================== LOGOUT ==================== */
   $('#adminLogout')?.addEventListener('click', () => {
     sessionStorage.removeItem(SESSION_KEY);
     showScreen('login');
