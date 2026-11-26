@@ -6,7 +6,6 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-// Render ke environment variables se link aayega
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/yesno';
 
 app.use(cors());
@@ -16,12 +15,11 @@ app.use(express.static(__dirname));
 let db;
 let questionsCol, usersCol, answersCol, feedbackCol, settingsCol;
 
-// --- DATABASE CONNECTION & SEEDING ---
 async function connectDB() {
   try {
     const client = new MongoClient(MONGODB_URI);
     await client.connect();
-    db = client.db('yesno'); // Database ka naam
+    db = client.db('yesno');
 
     questionsCol = db.collection('questions');
     usersCol = db.collection('users');
@@ -31,7 +29,6 @@ async function connectDB() {
 
     console.log('✅ MongoDB Connected Successfully');
 
-    // Seed Questions
     const qCount = await questionsCol.countDocuments();
     if (qCount === 0) {
       const seed = [
@@ -50,7 +47,6 @@ async function connectDB() {
       console.log('✅ Default questions inserted');
     }
 
-    // Seed Settings
     const sCount = await settingsCol.countDocuments();
     if (sCount === 0) {
       await settingsCol.insertMany([
@@ -80,7 +76,6 @@ app.get('/api/settings', async (req, res) => {
 app.get('/api/questions', async (req, res) => {
   try {
     const rows = await questionsCol.find({ active: true }).toArray();
-    // Convert _id to id for frontend
     res.json(rows.map(r => ({ ...r, id: r._id.toString() })));
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -131,10 +126,8 @@ app.get('/api/admin/stats', async (req, res) => {
     const questions = await questionsCol.countDocuments();
     const answers = await answersCol.countDocuments();
     const feedback = await feedbackCol.countDocuments();
-    
     const fbDocs = await feedbackCol.find({ rating: { $exists: true } }).toArray();
     const avgRating = fbDocs.length ? (fbDocs.reduce((s, f) => s + f.rating, 0) / fbDocs.length).toFixed(1) : '0.0';
-
     res.json({ users, questions, answers, feedback, avgRating });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -208,7 +201,7 @@ app.post('/api/settings', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Serve Frontend Pages
+// --- SERVE FRONTEND ---
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
